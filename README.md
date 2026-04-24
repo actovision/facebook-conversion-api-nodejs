@@ -67,7 +67,7 @@ await capi.trackEvent({
 
 - `setUserData(userData)` — merge persistent user data used on every subsequent event.
 - `resetUserData(userData?)` — replace persistent user data.
-- `trackEvent(event)` — send one event. Returns `Promise<CapiResponse>`.
+- `trackEvent(event)` — send one event. Returns `Promise<FacebookCapiResponse>`.
 - `trackEvents(events)` — send up to 1000 events in one request.
 
 ### Automatic hashing & normalization
@@ -289,8 +289,8 @@ Pass the same `eventId` that your browser pixel uses as the third `fbq('track', 
 
 ## Errors
 
-- `CapiError` — thrown on 4xx / non-retryable 5xx. Exposes `.status`, `.body`, `.fbtraceId`.
-- `CapiNetworkError` — thrown when fetch itself fails (timeout, DNS, connection reset) after the retry budget.
+- `FacebookCapiError` — thrown on 4xx / non-retryable 5xx. Exposes `.status`, `.body`, `.fbtraceId`.
+- `FacebookCapiNetworkError` — thrown when fetch itself fails (timeout, DNS, connection reset) after the retry budget.
 
 ## Singleton usage
 

@@ -1,5 +1,5 @@
 import { FacebookCapiClient } from './client.js'
-import type { FacebookCapiClientOptions, CapiResponse, ServerEvent, UserData } from './types.js'
+import type { FacebookCapiClientOptions, FacebookCapiResponse, ServerEvent, UserData } from './types.js'
 
 /**
  * Process-wide singleton offering the shorthand `init()` / `setUserData()` /
@@ -23,12 +23,12 @@ class FacebookConversionAPISingleton {
     else this.pendingUserData = { ...this.pendingUserData, ...userData }
   }
 
-  trackEvent(event: ServerEvent): Promise<CapiResponse> {
+  trackEvent(event: ServerEvent): Promise<FacebookCapiResponse> {
     this.requireClient()
     return this.client!.trackEvent(event)
   }
 
-  trackEvents(events: ServerEvent[]): Promise<CapiResponse> {
+  trackEvents(events: ServerEvent[]): Promise<FacebookCapiResponse> {
     this.requireClient()
     return this.client!.trackEvents(events)
   }

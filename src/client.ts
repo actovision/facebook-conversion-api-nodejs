@@ -3,7 +3,7 @@ import type {
   ActionSource,
   AppData,
   FacebookCapiClientOptions,
-  CapiResponse,
+  FacebookCapiResponse,
   ServerEvent,
   UserData,
 } from './types.js'
@@ -55,11 +55,11 @@ export class FacebookCapiClient {
     this.defaultUserData = userData
   }
 
-  trackEvent(event: ServerEvent, overrides?: SendOverrides): Promise<CapiResponse> {
+  trackEvent(event: ServerEvent, overrides?: SendOverrides): Promise<FacebookCapiResponse> {
     return this.trackEvents([event], overrides)
   }
 
-  async trackEvents(events: ServerEvent[], overrides?: SendOverrides): Promise<CapiResponse> {
+  async trackEvents(events: ServerEvent[], overrides?: SendOverrides): Promise<FacebookCapiResponse> {
     if (events.length === 0) throw new Error('FacebookCapiClient.trackEvents: no events provided')
     if (events.length > 1000) {
       throw new Error('FacebookCapiClient.trackEvents: Meta accepts at most 1000 events per request')

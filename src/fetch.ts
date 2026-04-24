@@ -1,5 +1,5 @@
-import { CapiError, CapiNetworkError } from './errors.js'
-import type { CapiErrorBody, CapiResponse } from './types.js'
+import { FacebookCapiError, FacebookCapiNetworkError } from './errors.js'
+import type { FacebookCapiErrorBody, FacebookCapiResponse } from './types.js'
 
 interface PostOptions {
   url: string
@@ -15,7 +15,7 @@ export async function postJson({
   timeoutMs,
   retries,
   fetchImpl,
-}: PostOptions): Promise<CapiResponse> {
+}: PostOptions): Promise<FacebookCapiResponse> {
   let attempt = 0
   let lastError: unknown
 
@@ -42,29 +42,29 @@ export async function postJson({
           await sleep(backoff(attempt))
           continue
         }
-        const errBody = parsed as CapiErrorBody | undefined
-        throw new CapiError(
+        const errBody = parsed as FacebookCapiErrorBody | undefined
+        throw new FacebookCapiError(
           errBody?.error?.message ?? `Meta Conversions API returned ${res.status}`,
           res.status,
           errBody,
         )
       }
 
-      return parsed as CapiResponse
+      return parsed as FacebookCapiResponse
     } catch (err) {
       clearTimeout(timer)
-      if (err instanceof CapiError) throw err
+      if (err instanceof FacebookCapiError) throw err
       lastError = err
       if (attempt < retries) {
         attempt++
         await sleep(backoff(attempt))
         continue
       }
-      throw new CapiNetworkError('Meta Conversions API request failed', err)
+      throw new FacebookCapiNetworkError('Meta Conversions API request failed', err)
     }
   }
 
-  throw new CapiNetworkError('Meta Conversions API request failed', lastError)
+  throw new FacebookCapiNetworkError('Meta Conversions API request failed', lastError)
 }
 
 function safeParse(text: string): unknown {

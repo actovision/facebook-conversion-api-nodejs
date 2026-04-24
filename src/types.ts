@@ -170,13 +170,13 @@ export interface FacebookCapiClientOptions {
   now?: () => number
 }
 
-export interface CapiResponse {
+export interface FacebookCapiResponse {
   events_received: number
   messages: string[]
   fbtrace_id: string
 }
 
-export interface CapiErrorBody {
+export interface FacebookCapiErrorBody {
   error: {
     message: string
     type: string

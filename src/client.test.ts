@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { FacebookCapiClient } from './client.js'
-import { CapiError, CapiNetworkError } from './errors.js'
+import { FacebookCapiError, FacebookCapiNetworkError } from './errors.js'
 import { sha256 } from './hash.js'
 
 const OK_BODY = { events_received: 1, messages: [], fbtrace_id: 'trace-1' }
@@ -137,7 +137,7 @@ describe('FacebookCapiClient', () => {
     await expect(capi.trackEvents(too_many)).rejects.toThrow(/1000/)
   })
 
-  it('throws CapiError on 4xx with the Meta error message', async () => {
+  it('throws FacebookCapiError on 4xx with the Meta error message', async () => {
     const errBody = {
       error: {
         message: 'Invalid access token',
@@ -155,10 +155,10 @@ describe('FacebookCapiClient', () => {
     })
     const err = await capi.trackEvent({ eventName: 'PageView' }).catch((e: unknown) => e)
 
-    expect(err).toBeInstanceOf(CapiError)
-    expect((err as CapiError).status).toBe(400)
-    expect((err as CapiError).message).toBe('Invalid access token')
-    expect((err as CapiError).fbtraceId).toBe('trace-bad')
+    expect(err).toBeInstanceOf(FacebookCapiError)
+    expect((err as FacebookCapiError).status).toBe(400)
+    expect((err as FacebookCapiError).message).toBe('Invalid access token')
+    expect((err as FacebookCapiError).fbtraceId).toBe('trace-bad')
     expect(fetchImpl).toHaveBeenCalledTimes(1) // 4xx is not retried
   })
 
@@ -218,7 +218,7 @@ describe('FacebookCapiClient', () => {
     expect(url).toBe('https://graph.facebook.com/v22.0/9/events')
   })
 
-  it('throws CapiNetworkError when fetch itself rejects past retry budget', async () => {
+  it('throws FacebookCapiNetworkError when fetch itself rejects past retry budget', async () => {
     const fetchImpl = vi.fn(async () => {
       throw new Error('ECONNRESET')
     }) as unknown as typeof fetch
@@ -228,7 +228,7 @@ describe('FacebookCapiClient', () => {
       fetch: fetchImpl,
       retries: 1,
     })
-    await expect(capi.trackEvent({ eventName: 'PageView' })).rejects.toBeInstanceOf(CapiNetworkError)
+    await expect(capi.trackEvent({ eventName: 'PageView' })).rejects.toBeInstanceOf(FacebookCapiNetworkError)
     expect(fetchImpl).toHaveBeenCalledTimes(2) // initial + 1 retry
   })
 })
