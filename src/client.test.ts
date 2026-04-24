@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { CapiClient } from './client.js'
+import { FacebookCapiClient } from './client.js'
 import { CapiError, CapiNetworkError } from './errors.js'
 import { sha256 } from './hash.js'
 
@@ -13,17 +13,17 @@ function mockFetchError(status: number, body: unknown): typeof fetch {
   return vi.fn(async () => new Response(JSON.stringify(body), { status })) as unknown as typeof fetch
 }
 
-describe('CapiClient', () => {
+describe('FacebookCapiClient', () => {
   afterEach(() => vi.restoreAllMocks())
 
   it('requires accessToken and pixelId', () => {
-    expect(() => new CapiClient({ accessToken: '', pixelId: 'p' })).toThrow(/accessToken/)
-    expect(() => new CapiClient({ accessToken: 't', pixelId: '' })).toThrow(/pixelId/)
+    expect(() => new FacebookCapiClient({ accessToken: '', pixelId: 'p' })).toThrow(/accessToken/)
+    expect(() => new FacebookCapiClient({ accessToken: 't', pixelId: '' })).toThrow(/pixelId/)
   })
 
   it('POSTs to graph.facebook.com with the configured api version and pixel id', async () => {
     const fetchImpl = mockFetchOk()
-    const capi = new CapiClient({
+    const capi = new FacebookCapiClient({
       accessToken: 'tok',
       pixelId: '123',
       apiVersion: 'v21.0',
@@ -41,7 +41,7 @@ describe('CapiClient', () => {
 
   it('builds a proper request body with hashed user data, event_time, and event_id', async () => {
     const fetchImpl = mockFetchOk()
-    const capi = new CapiClient({
+    const capi = new FacebookCapiClient({
       accessToken: 'tok',
       pixelId: '123',
       fetch: fetchImpl,
@@ -73,7 +73,7 @@ describe('CapiClient', () => {
 
   it('merges per-call userData over default userData', async () => {
     const fetchImpl = mockFetchOk()
-    const capi = new CapiClient({
+    const capi = new FacebookCapiClient({
       accessToken: 't',
       pixelId: 'p',
       fetch: fetchImpl,
@@ -94,7 +94,7 @@ describe('CapiClient', () => {
 
   it('includes test_event_code when configured', async () => {
     const fetchImpl = mockFetchOk()
-    const capi = new CapiClient({
+    const capi = new FacebookCapiClient({
       accessToken: 't',
       pixelId: 'p',
       testEventCode: 'TEST123',
@@ -111,7 +111,7 @@ describe('CapiClient', () => {
 
   it('sends a batch when trackEvents is called', async () => {
     const fetchImpl = mockFetchOk({ ...OK_BODY, events_received: 3 })
-    const capi = new CapiClient({
+    const capi = new FacebookCapiClient({
       accessToken: 't',
       pixelId: 'p',
       fetch: fetchImpl,
@@ -131,7 +131,7 @@ describe('CapiClient', () => {
   })
 
   it('rejects when asked to send 0 events or more than 1000', async () => {
-    const capi = new CapiClient({ accessToken: 't', pixelId: 'p', fetch: mockFetchOk() })
+    const capi = new FacebookCapiClient({ accessToken: 't', pixelId: 'p', fetch: mockFetchOk() })
     await expect(capi.trackEvents([])).rejects.toThrow(/no events/)
     const too_many = Array.from({ length: 1001 }, () => ({ eventName: 'PageView' as const }))
     await expect(capi.trackEvents(too_many)).rejects.toThrow(/1000/)
@@ -147,7 +147,7 @@ describe('CapiClient', () => {
       },
     }
     const fetchImpl = mockFetchError(400, errBody)
-    const capi = new CapiClient({
+    const capi = new FacebookCapiClient({
       accessToken: 't',
       pixelId: 'p',
       fetch: fetchImpl,
@@ -170,7 +170,7 @@ describe('CapiClient', () => {
       return new Response(JSON.stringify(OK_BODY), { status: 200 })
     }) as unknown as typeof fetch
 
-    const capi = new CapiClient({
+    const capi = new FacebookCapiClient({
       accessToken: 't',
       pixelId: 'p',
       fetch: fetchImpl,
@@ -181,11 +181,48 @@ describe('CapiClient', () => {
     expect(fetchImpl).toHaveBeenCalledTimes(3)
   })
 
+  it('serializes referrer_url and app_data on the wire', async () => {
+    const fetchImpl = mockFetchOk()
+    const capi = new FacebookCapiClient({
+      accessToken: 't',
+      pixelId: 'p',
+      fetch: fetchImpl,
+      retries: 0,
+    })
+    await capi.trackEvent({
+      eventName: 'Purchase',
+      referrerUrl: 'https://ref.test/',
+      actionSource: 'app',
+      appData: {
+        advertiserTrackingEnabled: true,
+        applicationTrackingEnabled: 0,
+        extinfo: ['i2', 'com.example'],
+        vendorId: 'vid-1',
+      },
+    })
+    const body = JSON.parse(
+      (fetchImpl as unknown as ReturnType<typeof vi.fn>).mock.calls[0][1].body as string,
+    )
+    expect(body.data[0].referrer_url).toBe('https://ref.test/')
+    expect(body.data[0].app_data.advertiser_tracking_enabled).toBe(1) // boolean coerced
+    expect(body.data[0].app_data.application_tracking_enabled).toBe(0)
+    expect(body.data[0].app_data.extinfo).toEqual(['i2', 'com.example'])
+    expect(body.data[0].app_data.vendor_id).toBe('vid-1')
+  })
+
+  it('defaults to Graph API v22.0', async () => {
+    const fetchImpl = mockFetchOk()
+    const capi = new FacebookCapiClient({ accessToken: 't', pixelId: '9', fetch: fetchImpl, retries: 0 })
+    await capi.trackEvent({ eventName: 'PageView' })
+    const [url] = (fetchImpl as unknown as ReturnType<typeof vi.fn>).mock.calls[0]
+    expect(url).toBe('https://graph.facebook.com/v22.0/9/events')
+  })
+
   it('throws CapiNetworkError when fetch itself rejects past retry budget', async () => {
     const fetchImpl = vi.fn(async () => {
       throw new Error('ECONNRESET')
     }) as unknown as typeof fetch
-    const capi = new CapiClient({
+    const capi = new FacebookCapiClient({
       accessToken: 't',
       pixelId: 'p',
       fetch: fetchImpl,

@@ -64,6 +64,20 @@ export interface UserData {
   facebookLoginId?: string
   subscriptionId?: string
   leadId?: string | number
+  /** Mobile Advertiser ID — IDFA (iOS) or GAID (Android). App events. */
+  madid?: string
+  /** Anonymous install ID when MADID unavailable. App events. */
+  anonId?: string
+  /** Facebook Page ID — messaging events. */
+  pageId?: string
+  /** Messenger Page-Scoped User ID — messaging events. */
+  pageScopedUserId?: string
+  /** Click-to-WhatsApp click ID. */
+  ctwaClid?: string
+  /** Instagram Account ID — Instagram messaging/lead events. */
+  igAccountId?: string
+  /** Click-to-Instagram session ID. */
+  igSid?: string
 }
 
 export interface Content {
@@ -91,6 +105,29 @@ export interface CustomData {
   order_id?: string
   search_string?: string
   status?: string
+  /** Top-level delivery category for Purchase events. */
+  delivery_category?: 'in_store' | 'curbside' | 'home_delivery'
+  [key: string]: unknown
+}
+
+/**
+ * `app_data` parameters sent when `action_source` is `app`.
+ * Docs: https://developers.facebook.com/docs/marketing-api/conversions-api/parameters/app-and-web-data
+ */
+export interface AppData {
+  /** iOS ATT consent. `1` = granted, `0` = denied. */
+  advertiserTrackingEnabled?: 0 | 1 | boolean
+  /** App-level tracking toggle. `1` = enabled. */
+  applicationTrackingEnabled?: 0 | 1 | boolean
+  /** Extended device info: [version, appPkgName, shortVersion, longVersion, osVersion, deviceModel, locale, tzAbbr, carrier, screenWidth, screenHeight, screenDensity, cpuCores, storageGB, ramGB]. */
+  extinfo?: unknown[]
+  /** iOS Vendor ID (IDFV). */
+  vendorId?: string
+  /** Google Play install referrer string. */
+  installReferrer?: string
+  /** Attribution campaign IDs (JSON string). */
+  campaignIds?: string
+  /** Allow arbitrary extra app_data fields. */
   [key: string]: unknown
 }
 
@@ -101,21 +138,25 @@ export interface ServerEvent {
   /** For pixel/server deduplication. */
   eventId?: string
   eventSourceUrl?: string
+  /** URL of the referring page. Optional but improves attribution. */
+  referrerUrl?: string
   actionSource?: ActionSource
   userData?: UserData
   customData?: CustomData
+  /** Required for `actionSource: 'app'`. */
+  appData?: AppData
   optOut?: boolean
   dataProcessingOptions?: string[]
   dataProcessingOptionsCountry?: number
   dataProcessingOptionsState?: number
 }
 
-export interface CapiClientOptions {
+export interface FacebookCapiClientOptions {
   accessToken: string
   pixelId: string
   /** Default action_source applied to every event unless overridden. */
   actionSource?: ActionSource
-  /** Graph API version. Defaults to 'v21.0'. */
+  /** Graph API version. Defaults to 'v22.0'. */
   apiVersion?: string
   /** Meta Events Manager test code for Test Events tab. */
   testEventCode?: string

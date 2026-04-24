@@ -47,6 +47,13 @@ const PASSTHROUGH: Array<[keyof UserData, string]> = [
   ['facebookLoginId', 'fb_login_id'],
   ['subscriptionId', 'subscription_id'],
   ['leadId', 'lead_id'],
+  ['madid', 'madid'],
+  ['anonId', 'anon_id'],
+  ['pageId', 'page_id'],
+  ['pageScopedUserId', 'page_scoped_user_id'],
+  ['ctwaClid', 'ctwa_clid'],
+  ['igAccountId', 'ig_account_id'],
+  ['igSid', 'ig_sid'],
 ]
 
 /** Produce the `user_data` object in Meta's wire shape. */

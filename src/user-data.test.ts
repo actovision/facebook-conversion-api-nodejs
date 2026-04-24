@@ -85,4 +85,23 @@ describe('buildUserData', () => {
     const out = buildUserData({ emails: [alreadyHashed] })
     expect(out.em).toEqual([alreadyHashed])
   })
+
+  it('passes through messaging / app identity signals unhashed', () => {
+    const out = buildUserData({
+      madid: 'idfa-1',
+      anonId: 'anon-1',
+      pageId: 'page-1',
+      pageScopedUserId: 'psid-1',
+      ctwaClid: 'ctwa-1',
+      igAccountId: 'ig-1',
+      igSid: 'igsid-1',
+    })
+    expect(out.madid).toBe('idfa-1')
+    expect(out.anon_id).toBe('anon-1')
+    expect(out.page_id).toBe('page-1')
+    expect(out.page_scoped_user_id).toBe('psid-1')
+    expect(out.ctwa_clid).toBe('ctwa-1')
+    expect(out.ig_account_id).toBe('ig-1')
+    expect(out.ig_sid).toBe('igsid-1')
+  })
 })

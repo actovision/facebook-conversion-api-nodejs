@@ -1,7 +1,8 @@
 import { postJson } from './fetch.js'
 import type {
   ActionSource,
-  CapiClientOptions,
+  AppData,
+  FacebookCapiClientOptions,
   CapiResponse,
   ServerEvent,
   UserData,
@@ -13,11 +14,11 @@ export interface SendOverrides {
   testEventCode?: string
 }
 
-const DEFAULT_API_VERSION = 'v21.0'
+const DEFAULT_API_VERSION = 'v22.0'
 const DEFAULT_TIMEOUT_MS = 10_000
 const DEFAULT_RETRIES = 2
 
-export class CapiClient {
+export class FacebookCapiClient {
   private accessToken: string
   private pixelId: string
   private actionSource: ActionSource
@@ -29,9 +30,9 @@ export class CapiClient {
   private now: () => number
   private defaultUserData: UserData = {}
 
-  constructor(options: CapiClientOptions) {
-    if (!options.accessToken) throw new Error('CapiClient: accessToken is required')
-    if (!options.pixelId) throw new Error('CapiClient: pixelId is required')
+  constructor(options: FacebookCapiClientOptions) {
+    if (!options.accessToken) throw new Error('FacebookCapiClient: accessToken is required')
+    if (!options.pixelId) throw new Error('FacebookCapiClient: pixelId is required')
 
     this.accessToken = options.accessToken
     this.pixelId = options.pixelId
@@ -59,9 +60,9 @@ export class CapiClient {
   }
 
   async trackEvents(events: ServerEvent[], overrides?: SendOverrides): Promise<CapiResponse> {
-    if (events.length === 0) throw new Error('CapiClient.trackEvents: no events provided')
+    if (events.length === 0) throw new Error('FacebookCapiClient.trackEvents: no events provided')
     if (events.length > 1000) {
-      throw new Error('CapiClient.trackEvents: Meta accepts at most 1000 events per request')
+      throw new Error('FacebookCapiClient.trackEvents: Meta accepts at most 1000 events per request')
     }
 
     const url = `https://graph.facebook.com/${this.apiVersion}/${this.pixelId}/events`
@@ -74,9 +75,11 @@ export class CapiClient {
         event_time: ev.eventTime ?? nowSec,
         ...(ev.eventId ? { event_id: ev.eventId } : {}),
         ...(ev.eventSourceUrl ? { event_source_url: ev.eventSourceUrl } : {}),
+        ...(ev.referrerUrl ? { referrer_url: ev.referrerUrl } : {}),
         action_source: ev.actionSource ?? this.actionSource,
         user_data: buildUserData(mergedUser),
         ...(ev.customData ? { custom_data: ev.customData } : {}),
+        ...(ev.appData ? { app_data: buildAppData(ev.appData) } : {}),
         ...(ev.optOut !== undefined ? { opt_out: ev.optOut } : {}),
         ...(ev.dataProcessingOptions
           ? { data_processing_options: ev.dataProcessingOptions }
@@ -105,4 +108,28 @@ export class CapiClient {
       fetchImpl: this.fetchImpl,
     })
   }
+}
+
+const APP_DATA_KEYS: Array<[keyof AppData, string]> = [
+  ['advertiserTrackingEnabled', 'advertiser_tracking_enabled'],
+  ['applicationTrackingEnabled', 'application_tracking_enabled'],
+  ['extinfo', 'extinfo'],
+  ['vendorId', 'vendor_id'],
+  ['installReferrer', 'install_referrer'],
+  ['campaignIds', 'campaign_ids'],
+]
+
+function buildAppData(app: AppData): Record<string, unknown> {
+  const out: Record<string, unknown> = {}
+  for (const [key, wire] of APP_DATA_KEYS) {
+    const raw = app[key]
+    if (raw === undefined || raw === null || raw === '') continue
+    out[wire] = typeof raw === 'boolean' ? (raw ? 1 : 0) : raw
+  }
+  for (const [k, v] of Object.entries(app)) {
+    if (APP_DATA_KEYS.some(([known]) => known === k)) continue
+    if (v === undefined || v === null || v === '') continue
+    out[k] = v
+  }
+  return out
 }

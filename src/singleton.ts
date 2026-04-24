@@ -1,17 +1,17 @@
-import { CapiClient } from './client.js'
-import type { CapiClientOptions, CapiResponse, ServerEvent, UserData } from './types.js'
+import { FacebookCapiClient } from './client.js'
+import type { FacebookCapiClientOptions, CapiResponse, ServerEvent, UserData } from './types.js'
 
 /**
  * Process-wide singleton offering the shorthand `init()` / `setUserData()` /
- * `trackEvent()` ergonomics. Prefer `new CapiClient(...)` in new code — it
+ * `trackEvent()` ergonomics. Prefer `new FacebookCapiClient(...)` in new code — it
  * supports multiple pixels per process.
  */
 class FacebookConversionAPISingleton {
-  private client: CapiClient | undefined
+  private client: FacebookCapiClient | undefined
   private pendingUserData: UserData = {}
 
-  init(options: CapiClientOptions): void {
-    this.client = new CapiClient(options)
+  init(options: FacebookCapiClientOptions): void {
+    this.client = new FacebookCapiClient(options)
     if (Object.keys(this.pendingUserData).length > 0) {
       this.client.setUserData(this.pendingUserData)
       this.pendingUserData = {}
