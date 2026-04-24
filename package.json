@@ -1,7 +1,7 @@
 {
   "name": "@actovision/facebook-conversion-api-nodejs",
   "version": "0.1.0",
-  "description": "Node.js/TypeScript client for Meta (Facebook) Conversions API. Direct Graph API, zero runtime deps.",
+  "description": "Node.js / TypeScript client for Meta's Conversions API (CAPI). FacebookCapiClient with full parameter coverage (user_data, app_data, referrer_url, LDU/CCPA, offline events), automatic SHA-256 hashing + normalization, batching up to 1000 events per request, exponential-backoff retries. Graph API v22.0, zero runtime dependencies.",
   "keywords": [
     "facebook",
     "meta",
