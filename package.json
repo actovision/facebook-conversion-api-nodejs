@@ -1,0 +1,58 @@
+{
+  "name": "@actovision/facebook-conversion-api-nodejs",
+  "version": "0.1.0",
+  "description": "Node.js/TypeScript client for Meta (Facebook) Conversions API. Direct Graph API, zero runtime deps.",
+  "keywords": [
+    "facebook",
+    "meta",
+    "conversion",
+    "conversions",
+    "capi",
+    "pixel",
+    "tracking",
+    "analytics"
+  ],
+  "author": "Actovision",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/actovision/actovision-facebook-conversion-api-nodejs.git"
+  },
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist coverage"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
